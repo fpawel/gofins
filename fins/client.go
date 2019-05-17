@@ -18,10 +18,10 @@ type Client struct {
 	conn *net.UDPConn
 	resp []chan response
 	sync.Mutex
-	dst  finsAddress
-	src  finsAddress
-	sid  byte
-	closed bool
+	dst               finsAddress
+	src               finsAddress
+	sid               byte
+	closed            bool
 	responseTimeoutMs time.Duration
 }
 
@@ -70,7 +70,7 @@ func (c *Client) ReadWords(memoryArea byte, address uint16, readCount uint16) ([
 
 	data := make([]uint16, readCount, readCount)
 	for i := 0; i < int(readCount); i++ {
-		data[i] = binary.BigEndian.Uint16(r.data[i*2: i*2+2])
+		data[i] = binary.BigEndian.Uint16(r.data[i*2 : i*2+2])
 	}
 
 	return data, nil
@@ -222,6 +222,14 @@ func (c *Client) ToggleBit(memoryArea byte, address uint16, bitOffset byte) erro
 	return c.bitTwiddle(memoryArea, address, bitOffset, t)
 }
 
+func (c *Client) BitTwiddle(memoryArea byte, address uint16, bitOffset byte, value bool) error {
+	var v byte
+	if value {
+		v = 1
+	}
+	return c.bitTwiddle(memoryArea, address, bitOffset, v)
+}
+
 func (c *Client) bitTwiddle(memoryArea byte, address uint16, bitOffset byte, value byte) error {
 	if checkIsBitMemoryArea(memoryArea) == false {
 		return IncompatibleMemoryAreaError{memoryArea}
@@ -313,6 +321,8 @@ func checkIsWordMemoryArea(memoryArea byte) bool {
 func checkIsBitMemoryArea(memoryArea byte) bool {
 	if memoryArea == MemoryAreaDMBit ||
 		memoryArea == MemoryAreaARBit ||
+		memoryArea == MemoryAreaARBit ||
+		memoryArea == MemoryAreaWRBit ||
 		memoryArea == MemoryAreaHRBit {
 		return true
 	}
